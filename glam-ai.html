@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Glam AI — Photo & Video Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8D5A3;
+    --gold-pale: #FBF6EC;
+    --rose: #D4637A;
+    --rose-light: #F0B8C4;
+    --dark: #0D0D0D;
+    --dark-2: #1A1A1A;
+    --dark-3: #252525;
+    --dark-4: #333;
+    --mid: #888;
+    --light: #F5F0E8;
+    --white: #FFFFFF;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --safe-bottom: env(safe-area-inset-bottom, 20px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--dark);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; flex-direction: column; min-height: 100vh; }
+  .screen.active { display: flex; }
+
+  /* ─── SPLASH ─── */
+  #splash {
+    background: var(--dark);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .splash-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+  .orb-1 { width: 300px; height: 300px; background: #C9A84C; top: -80px; right: -60px; }
+  .orb-2 { width: 250px; height: 250px; background: #D4637A; bottom: 100px; left: -80px; }
+  .orb-3 { width: 200px; height: 200px; background: #7B5EA7; top: 40%; right: -40px; }
+
+  .splash-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #E8D5A3, #C9A84C, #D4637A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .splash-tagline {
+    font-size: 14px;
+    color: var(--mid);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+  }
+  .splash-features {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 50px;
+    width: 100%;
+    max-width: 300px;
+    position: relative;
+    z-index: 1;
+  }
+  .splash-feat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 50px;
+    padding: 12px 20px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255,255,255,0.8);
+  }
+  .splash-feat .feat-icon { font-size: 18px; }
+  .btn-primary {
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 16px 48px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  /* ─── HOME ─── */
+  #home { background: var(--dark); overflow-y: auto; }
+  .home-header {
+    padding: 56px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .home-greeting { font-size: 12px; color: var(--mid); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .home-title { font-family: 'Playfair Display', serif; font-size: 28px; }
+  .home-title span { background: linear-gradient(135deg, #C9A84C, #D4637A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 24px 24px 0;
+  }
+  .qa-card {
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .qa-card:active { transform: scale(0.97); }
+  .qa-card.gold { background: linear-gradient(135deg, #3D2E0A, #2A1F06); border: 1px solid rgba(201,168,76,0.3); }
+  .qa-card.rose { background: linear-gradient(135deg, #3D1220, #280B14); border: 1px solid rgba(212,99,122,0.3); }
+  .qa-card.purple { background: linear-gradient(135deg, #1E1438, #130D25); border: 1px solid rgba(123,94,167,0.3); }
+  .qa-card.teal { background: linear-gradient(135deg, #0A2E28, #062019); border: 1px solid rgba(32,178,170,0.3); }
+  .qa-icon { font-size: 32px; margin-bottom: 8px; }
+  .qa-label { font-size: 13px; font-weight: 600; }
+  .qa-sub { font-size: 11px; color: var(--mid); margin-top: 2px; }
+  .qa-badge {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 20px; padding: 3px 8px;
+    font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.7);
+  }
+
+  .section-title {
+    padding: 28px 24px 14px;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .section-title .see-all { font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--gold); font-weight: 400; }
+
+  .filters-scroll {
+    display: flex;
+    gap: 10px;
+    padding: 0 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters-scroll::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    background: var(--dark-3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 50px;
+    padding: 9px 18px;
+    font-size: 13px;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .filter-chip.active {
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .filter-chip:active { transform: scale(0.95); }
+
+  .trending-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 14px 24px;
+  }
+  .trend-item {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    aspect-ratio: 3/4;
+    position: relative;
+    cursor: pointer;
+    background: var(--dark-3);
+  }
+  .trend-item:active { transform: scale(0.97); }
+  .trend-thumb {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+  .trend-item .t-bg { width: 100%; height: 100%; position: absolute; inset: 0; }
+  .trend-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    padding: 8px 6px 6px;
+  }
+  .trend-name { font-size: 10px; font-weight: 600; line-height: 1.3; }
+  .trend-uses { font-size: 9px; color: var(--mid); }
+  .trend-item .hot-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: var(--rose);
+    border-radius: 20px; padding: 2px 6px;
+    font-size: 9px; font-weight: 700;
+  }
+
+  /* ─── EDITOR ─── */
+  #editor { background: var(--dark); }
+  .editor-header {
+    padding: 56px 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    width: 40px; height: 40px;
+    background: var(--dark-3);
+    border-radius: 50%;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    cursor: pointer; color: white;
+    flex-shrink: 0;
+  }
+  .editor-title { font-family: 'Playfair Display', serif; font-size: 20px; }
+  .editor-title span { color: var(--gold); }
+
+  .canvas-area {
+    margin: 0 20px;
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    background: var(--dark-2);
+    aspect-ratio: 9/12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .canvas-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1208, #200d12, #10141a);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .canvas-placeholder .upload-icon { font-size: 48px; opacity: 0.4; }
+  .canvas-placeholder .upload-text { font-size: 14px; color: var(--mid); }
+  .canvas-img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; inset: 0;
+    transition: filter 0.4s ease;
+  }
+  .canvas-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+  }
+
+  /* Filter overlays */
+  .filter-glamour .canvas-overlay { background: linear-gradient(135deg, rgba(201,168,76,0.25), rgba(212,99,122,0.15)); }
+  .filter-vintage .canvas-overlay { background: rgba(160,120,60,0.35); }
+  .filter-neon .canvas-overlay { background: linear-gradient(135deg, rgba(0,255,200,0.12), rgba(200,0,255,0.12)); }
+  .filter-soft .canvas-overlay { background: rgba(255,220,230,0.2); }
+  .filter-bold .canvas-overlay { background: rgba(0,0,0,0); }
+
+  .canvas-ai-badge {
+    position: absolute; top: 14px; left: 14px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 11px; font-weight: 600; color: var(--gold);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse-dot 1.5s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  .canvas-actions {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .canvas-action-btn {
+    width: 38px; height: 38px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer;
+  }
+  .canvas-action-btn:active { transform: scale(0.9); }
+
+  .tools-tabs {
+    display: flex;
+    gap: 0;
+    margin: 16px 20px 0;
+    background: var(--dark-3);
+    border-radius: 50px;
+    padding: 4px;
+  }
+  .tool-tab {
+    flex: 1; text-align: center;
+    padding: 9px 0;
+    font-size: 12px; font-weight: 500;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--mid);
+  }
+  .tool-tab.active {
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    color: white;
+  }
+
+  .tool-panel { padding: 16px 20px; }
+  .tool-panel-section { display: none; }
+  .tool-panel-section.active { display: block; }
+
+  /* Adjust panel */
+  .adjust-sliders { display: flex; flex-direction: column; gap: 14px; }
+  .slider-row { display: flex; flex-direction: column; gap: 6px; }
+  .slider-header { display: flex; justify-content: space-between; font-size: 13px; }
+  .slider-label { color: rgba(255,255,255,0.7); }
+  .slider-val { color: var(--gold); font-weight: 600; }
+  input[type=range].glam {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: var(--dark-4); border-radius: 2px;
+    outline: none; cursor: pointer;
+  }
+  input[type=range].glam::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    cursor: pointer;
+    border: 2px solid rgba(0,0,0,0.3);
+  }
+
+  /* Filters panel */
+  .filter-scroll {
+    display: flex; gap: 10px;
+    overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;
+  }
+  .filter-scroll::-webkit-scrollbar { display: none; }
+  .filter-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .filter-thumb {
+    width: 70px; height: 70px; border-radius: 14px;
+    overflow: hidden; position: relative;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+  }
+  .filter-item.active .filter-thumb { border-color: var(--gold); }
+  .filter-thumb-inner {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .filter-name { font-size: 11px; color: var(--mid); }
+  .filter-item.active .filter-name { color: var(--gold); }
+
+  /* Beauty panel */
+  .beauty-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .beauty-item {
+    background: var(--dark-3);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: border-color 0.2s;
+  }
+  .beauty-item.active { border-color: rgba(201,168,76,0.5); }
+  .beauty-item:active { transform: scale(0.97); }
+  .beauty-icon { font-size: 22px; }
+  .beauty-info { flex: 1; min-width: 0; }
+  .beauty-name { font-size: 12px; font-weight: 600; margin-bottom: 1px; }
+  .beauty-level { font-size: 11px; color: var(--mid); }
+
+  /* AI panel */
+  .ai-features { display: flex; flex-direction: column; gap: 10px; }
+  .ai-feat-btn {
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; text-align: left;
+    transition: border-color 0.2s;
+  }
+  .ai-feat-btn:active { transform: scale(0.98); border-color: rgba(201,168,76,0.5); }
+  .ai-feat-icon { font-size: 24px; flex-shrink: 0; }
+  .ai-feat-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .ai-feat-desc { font-size: 11px; color: var(--mid); }
+  .ai-feat-tag {
+    margin-left: auto;
+    background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(212,99,122,0.2));
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 20px; padding: 3px 8px;
+    font-size: 10px; color: var(--gold); font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* Export bar */
+  .export-bar {
+    margin: 12px 20px;
+    padding: 0 0 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .btn-secondary {
+    flex: 1;
+    background: var(--dark-3);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    border-radius: 50px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-export {
+    flex: 2;
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    border: none;
+    color: white;
+    border-radius: 50px;
+    padding: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-export:active, .btn-secondary:active { transform: scale(0.97); }
+
+  /* ─── VIDEO ─── */
+  #video-screen { background: var(--dark); overflow-y: auto; }
+  .video-header {
+    padding: 56px 24px 20px;
+  }
+  .video-title { font-family: 'Playfair Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .video-sub { font-size: 13px; color: var(--mid); }
+
+  .video-templates {
+    padding: 0 24px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .vid-template {
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    height: 180px;
+    cursor: pointer;
+    display: flex; align-items: flex-end;
+  }
+  .vid-template:active { transform: scale(0.98); }
+  .vid-bg {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+  }
+  .vid-bg-overlay { position: absolute; inset: 0; background: linear-gradient(transparent 30%, rgba(0,0,0,0.85)); }
+  .vid-info { padding: 16px 18px; position: relative; z-index: 1; }
+  .vid-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+  .vid-meta { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .vid-play {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .vid-badge {
+    position: absolute; top: 14px; left: 14px;
+    border-radius: 20px; padding: 4px 10px;
+    font-size: 10px; font-weight: 700;
+  }
+  .vid-badge.new { background: var(--gold); color: #0D0D0D; }
+  .vid-badge.viral { background: var(--rose); color: white; }
+
+  /* ─── CREATE (AI Generate) ─── */
+  #create-screen { background: var(--dark); overflow-y: auto; }
+  .create-header { padding: 56px 24px 24px; }
+  .create-title { font-family: 'Playfair Display', serif; font-size: 26px; margin-bottom: 6px; }
+  .create-sub { font-size: 13px; color: var(--mid); }
+
+  .style-select {
+    padding: 0 24px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .style-card {
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    cursor: pointer;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .style-card.selected { border-color: var(--gold); }
+  .style-card:active { transform: scale(0.97); }
+  .style-card-icon { font-size: 32px; margin-bottom: 10px; }
+  .style-card-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .style-card-desc { font-size: 11px; color: var(--mid); }
+  .style-card.bg-a { background: linear-gradient(135deg, #1a1208, #0d0a04); }
+  .style-card.bg-b { background: linear-gradient(135deg, #200d12, #100609); }
+  .style-card.bg-c { background: linear-gradient(135deg, #0c1220, #060c14); }
+  .style-card.bg-d { background: linear-gradient(135deg, #141420, #0a0a14); }
+
+  .prompt-area { padding: 0 24px 20px; }
+  .prompt-label { font-size: 12px; color: var(--mid); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .prompt-box {
+    background: var(--dark-3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .prompt-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    resize: none;
+    min-height: 80px;
+    width: 100%;
+  }
+  .prompt-input::placeholder { color: rgba(255,255,255,0.25); }
+  .prompt-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .prompt-hint { font-size: 11px; color: var(--mid); }
+  .generate-btn {
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .generate-btn:active { transform: scale(0.96); }
+
+  .suggestions-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 24px 24px;
+  }
+  .suggestions-row::-webkit-scrollbar { display: none; }
+  .sug-chip {
+    background: var(--dark-3);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 50px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .sug-chip:active { border-color: var(--gold); color: var(--gold); transform: scale(0.96); }
+
+  .ai-loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .ai-loading.show { display: flex; }
+  .loader-ring {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 3px solid var(--dark-4);
+    border-top-color: var(--gold);
+    border-right-color: var(--rose);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text { font-size: 14px; color: var(--mid); }
+  .loader-status { font-size: 12px; color: rgba(255,255,255,0.3); }
+
+  /* ─── PROFILE ─── */
+  #profile-screen { background: var(--dark); overflow-y: auto; }
+  .profile-header { padding: 56px 24px 24px; text-align: center; }
+  .profile-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 28px;
+    margin: 0 auto 12px;
+    border: 3px solid rgba(201,168,76,0.3);
+  }
+  .profile-name { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 4px; }
+  .profile-handle { font-size: 13px; color: var(--mid); margin-bottom: 20px; }
+  .profile-stats {
+    display: flex; justify-content: center; gap: 0;
+    background: var(--dark-3); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .p-stat {
+    flex: 1; padding: 16px 0; text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .p-stat:last-child { border-right: none; }
+  .p-stat-val { font-size: 20px; font-weight: 700; font-family: 'Playfair Display', serif; }
+  .p-stat-lbl { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+  .profile-section { padding: 20px 24px 0; }
+  .profile-section-title { font-size: 12px; color: var(--mid); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+  .pro-card {
+    background: linear-gradient(135deg, #3D2E0A, #280B14);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; margin-bottom: 20px;
+  }
+  .pro-icon { font-size: 32px; }
+  .pro-info { flex: 1; }
+  .pro-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .pro-desc { font-size: 12px; color: rgba(255,255,255,0.6); }
+  .pro-btn { font-size: 12px; font-weight: 600; color: var(--gold); }
+
+  .menu-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .menu-icon.gold { background: rgba(201,168,76,0.15); }
+  .menu-icon.rose { background: rgba(212,99,122,0.15); }
+  .menu-icon.blue { background: rgba(100,150,255,0.15); }
+  .menu-label { flex: 1; font-size: 14px; }
+  .menu-arrow { color: var(--mid); font-size: 18px; }
+
+  /* ─── BOTTOM NAV ─── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: rgba(13,13,13,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    padding: 10px 0 calc(10px + var(--safe-bottom));
+    z-index: 100;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    cursor: pointer; padding: 4px 0;
+  }
+  .nav-item:active { transform: scale(0.9); }
+  .nav-icon { font-size: 24px; opacity: 0.4; transition: opacity 0.2s; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-label { font-size: 10px; color: var(--mid); transition: color 0.2s; }
+  .nav-item.active .nav-label { color: var(--gold); }
+  .nav-center-btn {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, #C9A84C, #D4637A);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    margin-top: -14px;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .nav-center-btn:active { transform: scale(0.9); }
+
+  /* AI Toast */
+  .ai-toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--gold);
+    white-space: nowrap;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .ai-toast.show { opacity: 1; }
+
+  /* Scroll padding for nav */
+  .scroll-pad { height: 90px; }
+
+  /* Filter classes on canvas */
+  .f-none img { filter: none; }
+  .f-glamour img { filter: contrast(1.1) saturate(1.2) brightness(1.05); }
+  .f-vintage img { filter: sepia(0.6) contrast(1.1) brightness(0.95); }
+  .f-neon img { filter: contrast(1.2) saturate(1.8) hue-rotate(20deg); }
+  .f-soft img { filter: brightness(1.1) saturate(0.8) contrast(0.95); }
+  .f-bold img { filter: contrast(1.3) saturate(1.3) brightness(0.95); }
+  .f-mono img { filter: grayscale(1) contrast(1.15); }
+  .f-rose img { filter: sepia(0.3) saturate(1.4) hue-rotate(310deg) brightness(1.05); }
+
+  /* Glam animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.4s ease both; }
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  .shimmer {
+    background: linear-gradient(90deg, #C9A84C 0%, #E8D5A3 50%, #C9A84C 100%);
+    background-size: 200% auto;
+    animation: shimmer 2s linear infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── SPLASH ─── -->
+<div class="screen active" id="splash">
+  <div class="splash-orb orb-1"></div>
+  <div class="splash-orb orb-2"></div>
+  <div class="splash-orb orb-3"></div>
+  <div class="splash-logo">Glam</div>
+  <div class="splash-tagline">AI · Photo · Video</div>
+  <div class="splash-features">
+    <div class="splash-feat"><span class="feat-icon">✨</span> AI Generative Filters</div>
+    <div class="splash-feat"><span class="feat-icon">💎</span> Beauty Enhancement Tools</div>
+    <div class="splash-feat"><span class="feat-icon">🎬</span> Viral Video Templates</div>
+    <div class="splash-feat"><span class="feat-icon">🌟</span> One-tap Content Creation</div>
+  </div>
+  <button class="btn-primary" onclick="goHome()">Start Creating ✦</button>
+</div>
+
+<!-- ─── HOME ─── -->
+<div class="screen" id="home">
+  <div class="home-header fade-in">
+    <div>
+      <div class="home-greeting">Good morning</div>
+      <div class="home-title">Create <span>Magic</span> ✦</div>
+    </div>
+    <div class="avatar" onclick="goScreen('profile-screen')">G</div>
+  </div>
+
+  <div class="quick-actions fade-in" style="animation-delay:0.1s">
+    <div class="qa-card gold" onclick="goEditor()">
+      <div>
+        <div class="qa-icon">🖼️</div>
+        <div class="qa-label">AI Photo Edit</div>
+        <div class="qa-sub">Smart retouching</div>
+      </div>
+      <div class="qa-badge">NEW</div>
+    </div>
+    <div class="qa-card rose" onclick="goScreen('video-screen')">
+      <div>
+        <div class="qa-icon">🎬</div>
+        <div class="qa-label">Video Studio</div>
+        <div class="qa-sub">Viral templates</div>
+      </div>
+      <div class="qa-badge">🔥</div>
+    </div>
+    <div class="qa-card purple" onclick="goScreen('create-screen')">
+      <div>
+        <div class="qa-icon">🤖</div>
+        <div class="qa-label">AI Generate</div>
+        <div class="qa-sub">Text to image</div>
+      </div>
+      <div class="qa-badge">AI</div>
+    </div>
+    <div class="qa-card teal" onclick="showToast('Beauty Camera opening...')">
+      <div>
+        <div class="qa-icon">📷</div>
+        <div class="qa-label">Beauty Cam</div>
+        <div class="qa-sub">Live filters</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title fade-in" style="animation-delay:0.15s">
+    <span>✦ Trending</span>
+    <span class="see-all">See all</span>
+  </div>
+
+  <div class="filters-scroll fade-in" style="animation-delay:0.2s">
+    <div class="filter-chip active">All</div>
+    <div class="filter-chip">Aesthetic</div>
+    <div class="filter-chip">Beauty</div>
+    <div class="filter-chip">Y2K</div>
+    <div class="filter-chip">Dark Glam</div>
+    <div class="filter-chip">Nature</div>
+    <div class="filter-chip">Editorial</div>
+  </div>
+
+  <div class="trending-grid fade-in" style="animation-delay:0.25s">
+    <div class="trend-item" onclick="goEditor()">
+      <div class="t-bg" style="background:linear-gradient(135deg,#2a1040,#0d0d20)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px">🌙</div></div>
+      <div class="trend-overlay"><div class="trend-name">Midnight Glam</div><div class="trend-uses">2.1M uses</div></div>
+      <div class="hot-badge">🔥</div>
+    </div>
+    <div class="trend-item" onclick="goEditor()">
+      <div class="t-bg" style="background:linear-gradient(135deg,#3d2008,#1a0c02)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px">☀️</div></div>
+      <div class="trend-overlay"><div class="trend-name">Golden Hour</div><div class="trend-uses">1.8M uses</div></div>
+    </div>
+    <div class="trend-item" onclick="goEditor()">
+      <div class="t-bg" style="background:linear-gradient(135deg,#201040,#0a1030)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px">💜</div></div>
+      <div class="trend-overlay"><div class="trend-name">Neon Nights</div><div class="trend-uses">985K uses</div></div>
+      <div class="hot-badge">NEW</div>
+    </div>
+    <div class="trend-item" onclick="goEditor()">
+      <div class="t-bg" style="background:linear-gradient(135deg,#1a0810,#300d1a)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px">🌹</div></div>
+      <div class="trend-overlay"><div class="trend-name">Rose Edit</div><div class="trend-uses">766K uses</div></div>
+    </div>
+    <div class="trend-item" onclick="goEditor()">
+      <div class="t-bg" style="background:linear-gradient(135deg,#082028,#041218)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px">🌊</div></div>
+      <div class="trend-overlay"><div class="trend-name">Ice Cold</div><div class="trend-uses">541K uses</div></div>
+    </div>
+    <div class="trend-item" onclick="goEditor()">
+      <div class="t-bg" style="background:linear-gradient(135deg,#281808,#140c04)"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px">🍂</div></div>
+      <div class="trend-overlay"><div class="trend-name">Autumn</div><div class="trend-uses">430K uses</div></div>
+    </div>
+  </div>
+  <div class="scroll-pad"></div>
+</div>
+
+<!-- ─── EDITOR ─── -->
+<div class="screen" id="editor">
+  <div class="editor-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="editor-title">Glam <span>Editor</span></div>
+    <div style="margin-left:auto;font-size:22px;cursor:pointer" onclick="showToast('Saved to drafts ✓')">🔖</div>
+  </div>
+
+  <div class="canvas-area" id="canvasArea" onclick="uploadPhoto()">
+    <div class="canvas-placeholder" id="canvasPlaceholder">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text">Tap to upload photo</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px">JPG, PNG, HEIC</div>
+    </div>
+    <div class="canvas-ai-badge" id="aiLabel" style="display:none">
+      <div class="ai-dot"></div> AI Enhanced
+    </div>
+    <div class="canvas-actions" id="canvasActions" style="display:none">
+      <div class="canvas-action-btn" onclick="event.stopPropagation();cycleFilter()">🎨</div>
+      <div class="canvas-action-btn" onclick="event.stopPropagation();showToast('Cropping...')">✂️</div>
+      <div class="canvas-action-btn" onclick="event.stopPropagation();showToast('Stickers added ✨')">⭐</div>
+      <div class="canvas-action-btn" onclick="event.stopPropagation();showToast('Text tool ready')">T</div>
+    </div>
+  </div>
+
+  <div class="tools-tabs">
+    <div class="tool-tab active" onclick="switchTab(this,'adjust')">Adjust</div>
+    <div class="tool-tab" onclick="switchTab(this,'filters')">Filters</div>
+    <div class="tool-tab" onclick="switchTab(this,'beauty')">Beauty</div>
+    <div class="tool-tab" onclick="switchTab(this,'ai-tools')">AI ✦</div>
+  </div>
+
+  <div class="tool-panel">
+    <!-- Adjust -->
+    <div class="tool-panel-section active" id="tab-adjust">
+      <div class="adjust-sliders">
+        <div class="slider-row"><div class="slider-header"><span class="slider-label">✦ Brightness</span><span class="slider-val" id="v-bright">0</span></div><input type="range" class="glam" min="-100" max="100" value="0" oninput="document.getElementById('v-bright').textContent=this.value;updateEffect()"></div>
+        <div class="slider-row"><div class="slider-header"><span class="slider-label">◉ Contrast</span><span class="slider-val" id="v-contrast">0</span></div><input type="range" class="glam" min="-100" max="100" value="0" oninput="document.getElementById('v-contrast').textContent=this.value;updateEffect()"></div>
+        <div class="slider-row"><div class="slider-header"><span class="slider-label">🌈 Saturation</span><span class="slider-val" id="v-sat">0</span></div><input type="range" class="glam" min="-100" max="100" value="0" oninput="document.getElementById('v-sat').textContent=this.value;updateEffect()"></div>
+        <div class="slider-row"><div class="slider-header"><span class="slider-label">🌡 Warmth</span><span class="slider-val" id="v-warm">0</span></div><input type="range" class="glam" min="-100" max="100" value="0" oninput="document.getElementById('v-warm').textContent=this.value;updateEffect()"></div>
+        <div class="slider-row"><div class="slider-header"><span class="slider-label">✨ Clarity</span><span class="slider-val" id="v-clarity">0</span></div><input type="range" class="glam" min="-100" max="100" value="0" oninput="document.getElementById('v-clarity').textContent=this.value;updateEffect()"></div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="tool-panel-section" id="tab-filters">
+      <div class="filter-scroll">
+        <div class="filter-item active" onclick="applyFilter(this,'none')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:#222">🏛</div></div>
+          <div class="filter-name">Original</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'glamour')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#3d2008,#280814)">✨</div></div>
+          <div class="filter-name">Glamour</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'vintage')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#3d2e14,#1a1206)">📜</div></div>
+          <div class="filter-name">Vintage</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'neon')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#0a1030,#201040)">💜</div></div>
+          <div class="filter-name">Neon</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'soft')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#2a1820,#1a1018)">🌸</div></div>
+          <div class="filter-name">Soft Glow</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'bold')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#200808,#100404)">🔥</div></div>
+          <div class="filter-name">Bold</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'mono')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#1a1a1a,#080808)">◼</div></div>
+          <div class="filter-name">Mono</div>
+        </div>
+        <div class="filter-item" onclick="applyFilter(this,'rose')">
+          <div class="filter-thumb"><div class="filter-thumb-inner" style="background:linear-gradient(135deg,#301028,#180814)">🌹</div></div>
+          <div class="filter-name">Rose</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beauty -->
+    <div class="tool-panel-section" id="tab-beauty">
+      <div class="beauty-grid">
+        <div class="beauty-item" onclick="toggleBeauty(this)">
+          <div class="beauty-icon">✨</div>
+          <div class="beauty-info"><div class="beauty-name">Smooth Skin</div><div class="beauty-level">Natural</div></div>
+        </div>
+        <div class="beauty-item" onclick="toggleBeauty(this)">
+          <div class="beauty-icon">💡</div>
+          <div class="beauty-info"><div class="beauty-name">Brighten</div><div class="beauty-level">+30</div></div>
+        </div>
+        <div class="beauty-item active" onclick="toggleBeauty(this)">
+          <div class="beauty-icon">👁️</div>
+          <div class="beauty-info"><div class="beauty-name">Eye Enhance</div><div class="beauty-level">Active</div></div>
+        </div>
+        <div class="beauty-item" onclick="toggleBeauty(this)">
+          <div class="beauty-icon">💋</div>
+          <div class="beauty-info"><div class="beauty-name">Lip Color</div><div class="beauty-level">Rose</div></div>
+        </div>
+        <div class="beauty-item" onclick="toggleBeauty(this)">
+          <div class="beauty-icon">✏️</div>
+          <div class="beauty-info"><div class="beauty-name">Define Brows</div><div class="beauty-level">Subtle</div></div>
+        </div>
+        <div class="beauty-item" onclick="toggleBeauty(this)">
+          <div class="beauty-icon">🌟</div>
+          <div class="beauty-info"><div class="beauty-name">Glow Up</div><div class="beauty-level">AI Magic</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Tools -->
+    <div class="tool-panel-section" id="tab-ai-tools">
+      <div class="ai-features">
+        <div class="ai-feat-btn" onclick="runAIFeature('Background Remove')">
+          <div class="ai-feat-icon">🪄</div>
+          <div><div class="ai-feat-name">Background Remove</div><div class="ai-feat-desc">Instant AI cutout</div></div>
+          <div class="ai-feat-tag">AI</div>
+        </div>
+        <div class="ai-feat-btn" onclick="runAIFeature('Sky Replacement')">
+          <div class="ai-feat-icon">☁️</div>
+          <div><div class="ai-feat-name">Sky Replacement</div><div class="ai-feat-desc">Swap any sky instantly</div></div>
+          <div class="ai-feat-tag">AI</div>
+        </div>
+        <div class="ai-feat-btn" onclick="runAIFeature('Object Erase')">
+          <div class="ai-feat-icon">🧹</div>
+          <div><div class="ai-feat-name">Object Erase</div><div class="ai-feat-desc">Remove anything</div></div>
+          <div class="ai-feat-tag">AI</div>
+        </div>
+        <div class="ai-feat-btn" onclick="runAIFeature('Style Transfer')">
+          <div class="ai-feat-icon">🎨</div>
+          <div><div class="ai-feat-name">Style Transfer</div><div class="ai-feat-desc">Art style AI filter</div></div>
+          <div class="ai-feat-tag">PRO</div>
+        </div>
+        <div class="ai-feat-btn" onclick="runAIFeature('Upscale 4x')">
+          <div class="ai-feat-icon">🔍</div>
+          <div><div class="ai-feat-name">Upscale 4×</div><div class="ai-feat-desc">AI super resolution</div></div>
+          <div class="ai-feat-tag">AI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="export-bar">
+    <button class="btn-secondary" onclick="showToast('Reset applied')">Reset</button>
+    <button class="btn-export" onclick="exportPhoto()">✦ Export &amp; Share</button>
+  </div>
+</div>
+
+<!-- ─── VIDEO ─── -->
+<div class="screen" id="video-screen">
+  <div class="video-header fade-in">
+    <div class="video-title">Video <span style="background:linear-gradient(135deg,#C9A84C,#D4637A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Studio</span></div>
+    <div class="video-sub">Viral-ready templates</div>
+  </div>
+
+  <div class="video-templates fade-in">
+    <div class="vid-template" onclick="showToast('Opening Reel Maker...')">
+      <div class="vid-bg" style="background:linear-gradient(135deg,#1a0814,#0d0420)">🎵</div>
+      <div class="vid-bg-overlay"></div>
+      <div class="vid-badge new">NEW</div>
+      <div class="vid-info"><div class="vid-name">Aesthetic Reel</div><div class="vid-meta">30s · Music sync · Auto-cut</div></div>
+      <div class="vid-play">▶</div>
+    </div>
+    <div class="vid-template" onclick="showToast('Opening Glow Up...')">
+      <div class="vid-bg" style="background:linear-gradient(135deg,#2a1408,#180c04)">✨</div>
+      <div class="vid-bg-overlay"></div>
+      <div class="vid-badge viral">VIRAL</div>
+      <div class="vid-info"><div class="vid-name">Glow Up Transition</div><div class="vid-meta">15s · Before & After · AI Beauty</div></div>
+      <div class="vid-play">▶</div>
+    </div>
+    <div class="vid-template" onclick="showToast('Opening GRWM...')">
+      <div class="vid-bg" style="background:linear-gradient(135deg,#080820,#041020)">💄</div>
+      <div class="vid-bg-overlay"></div>
+      <div class="vid-info"><div class="vid-name">GRWM Template</div><div class="vid-meta">60s · Multi-scene · Voiceover</div></div>
+      <div class="vid-play">▶</div>
+    </div>
+    <div class="vid-template" onclick="showToast('Opening Slideshow...')">
+      <div class="vid-bg" style="background:linear-gradient(135deg,#0a2010,#041008)">🌿</div>
+      <div class="vid-bg-overlay"></div>
+      <div class="vid-info"><div class="vid-name">Photo Slideshow</div><div class="vid-meta">Any length · 50+ transitions</div></div>
+      <div class="vid-play">▶</div>
+    </div>
+  </div>
+  <div class="scroll-pad"></div>
+</div>
+
+<!-- ─── CREATE (AI Generate) ─── -->
+<div class="screen" id="create-screen">
+  <div class="create-header fade-in">
+    <div class="create-title">AI <span class="shimmer">Generate</span></div>
+    <div class="create-sub">Create stunning images with text</div>
+  </div>
+
+  <div style="padding:0 24px 8px;font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:1px" class="fade-in">Style</div>
+  <div class="style-select fade-in">
+    <div class="style-card bg-a selected" onclick="selectStyle(this)">
+      <div class="style-card-icon">✨</div>
+      <div class="style-card-name">Glamour</div>
+      <div class="style-card-desc">High-fashion editorial</div>
+    </div>
+    <div class="style-card bg-b" onclick="selectStyle(this)">
+      <div class="style-card-icon">🌸</div>
+      <div class="style-card-name">Soft Aesthetic</div>
+      <div class="style-card-desc">Dreamy & feminine</div>
+    </div>
+    <div class="style-card bg-c" onclick="selectStyle(this)">
+      <div class="style-card-icon">💜</div>
+      <div class="style-card-name">Dark Fantasy</div>
+      <div class="style-card-desc">Moody & cinematic</div>
+    </div>
+    <div class="style-card bg-d" onclick="selectStyle(this)">
+      <div class="style-card-icon">🤖</div>
+      <div class="style-card-name">Cyber Glam</div>
+      <div class="style-card-desc">Futuristic beauty</div>
+    </div>
+  </div>
+
+  <div class="prompt-area fade-in">
+    <div class="prompt-label">Describe your vision</div>
+    <div class="prompt-box">
+      <textarea class="prompt-input" id="promptInput" placeholder="A glamorous portrait with golden hour lighting, soft bokeh background, editorial fashion photography style..."></textarea>
+      <div class="prompt-actions">
+        <div class="prompt-hint">✦ AI will generate 4 options</div>
+        <button class="generate-btn" onclick="startGenerate()">Generate ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:0 24px 8px;font-size:12px;color:var(--mid);text-transform:uppercase;letter-spacing:1px" class="fade-in">Quick prompts</div>
+  <div class="suggestions-row fade-in">
+    <div class="sug-chip" onclick="setPrompt('Golden hour portrait, warm glow, bokeh')">🌅 Golden hour</div>
+    <div class="sug-chip" onclick="setPrompt('Vintage glamour, 1960s Hollywood, soft lighting')">🎬 Hollywood</div>
+    <div class="sug-chip" onclick="setPrompt('Neon city night, cyberpunk aesthetic, rain')">💜 Cyberpunk</div>
+    <div class="sug-chip" onclick="setPrompt('Ethereal forest fairy, magical light beams')">🌿 Fairy tale</div>
+    <div class="sug-chip" onclick="setPrompt('High fashion editorial, dramatic shadows, vogue')">💎 Editorial</div>
+  </div>
+
+  <div class="ai-loading" id="aiLoading">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Generating your vision...</div>
+    <div class="loader-status" id="loaderStatus">Initializing AI models</div>
+  </div>
+
+  <div class="scroll-pad"></div>
+</div>
+
+<!-- ─── PROFILE ─── -->
+<div class="screen" id="profile-screen">
+  <div class="profile-header fade-in">
+    <div class="profile-avatar">G</div>
+    <div class="profile-name">Glam Creator</div>
+    <div class="profile-handle">@glamcreator</div>
+    <div class="profile-stats">
+      <div class="p-stat"><div class="p-stat-val" style="background:linear-gradient(135deg,#C9A84C,#D4637A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">247</div><div class="p-stat-lbl">Creations</div></div>
+      <div class="p-stat"><div class="p-stat-val">12K</div><div class="p-stat-lbl">Followers</div></div>
+      <div class="p-stat"><div class="p-stat-val">98K</div><div class="p-stat-lbl">Likes</div></div>
+    </div>
+  </div>
+
+  <div class="profile-section fade-in">
+    <div class="pro-card" onclick="showToast('Glam Pro — Unlimited AI ✦')">
+      <div class="pro-icon">💎</div>
+      <div class="pro-info">
+        <div class="pro-title">Upgrade to Glam Pro</div>
+        <div class="pro-desc">Unlimited AI generations, 4K export, no watermark</div>
+      </div>
+      <div class="pro-btn">$7.99/mo →</div>
+    </div>
+
+    <div class="profile-section-title">Settings</div>
+    <div class="menu-item" onclick="showToast('Edit Profile')">
+      <div class="menu-icon gold">👤</div>
+      <div class="menu-label">Edit Profile</div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="showToast('Saved Creations')">
+      <div class="menu-icon rose">🖼️</div>
+      <div class="menu-label">My Creations</div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="showToast('Cloud sync enabled')">
+      <div class="menu-icon blue">☁️</div>
+      <div class="menu-label">Cloud Backup</div>
+      <div class="menu-arrow">›</div>
+    </div>
+    <div class="menu-item" onclick="showToast('Glam AI v2.4.1')">
+      <div class="menu-icon gold">✨</div>
+      <div class="menu-label">App Version</div>
+      <div class="menu-arrow">v2.4.1</div>
+    </div>
+  </div>
+  <div class="scroll-pad"></div>
+</div>
+
+<!-- ─── BOTTOM NAV ─── -->
+<div class="bottom-nav" id="bottomNav">
+  <div class="nav-item active" id="nav-home" onclick="goHome()">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Home</div>
+  </div>
+  <div class="nav-item" id="nav-video" onclick="goScreen('video-screen','nav-video')">
+    <div class="nav-icon">🎬</div>
+    <div class="nav-label">Video</div>
+  </div>
+  <div class="nav-center-btn" onclick="goEditor()">✦</div>
+  <div class="nav-item" id="nav-create" onclick="goScreen('create-screen','nav-create')">
+    <div class="nav-icon">🤖</div>
+    <div class="nav-label">Generate</div>
+  </div>
+  <div class="nav-item" id="nav-profile" onclick="goScreen('profile-screen','nav-profile')">
+    <div class="nav-icon">👤</div>
+    <div class="nav-label">Profile</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="ai-toast" id="aiToast"></div>
+
+<script>
+let currentFilter = 'none';
+let photoLoaded = false;
+
+// Demo photo — a solid gradient placeholder for the canvas
+const demoGradients = [
+  'linear-gradient(135deg, #2a1040 0%, #0d0420 40%, #200814 100%)',
+  'linear-gradient(135deg, #3d2008 0%, #1a0810 50%, #280d14 100%)',
+  'linear-gradient(135deg, #0a1030 0%, #201040 50%, #0d0820 100%)',
+];
+
+function goHome() {
+  showScreen('home');
+  setNavActive('nav-home');
+}
+function goEditor() {
+  showScreen('editor');
+  setNavActive(null);
+}
+function goScreen(id, navId) {
+  showScreen(id);
+  setNavActive(navId || null);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const bottomNav = document.getElementById('bottomNav');
+  bottomNav.style.display = id === 'splash' ? 'none' : 'flex';
+}
+
+function setNavActive(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+}
+
+function uploadPhoto() {
+  if (photoLoaded) return;
+  photoLoaded = true;
+  const area = document.getElementById('canvasArea');
+  const placeholder = document.getElementById('canvasPlaceholder');
+  // Create a styled canvas div as photo
+  placeholder.innerHTML = `
+    <div style="width:100%;height:100%;background:${demoGradients[0]};position:relative;display:flex;align-items:center;justify-content:center;">
+      <div style="text-align:center;opacity:0.6">
+        <div style="font-size:80px;line-height:1">🌙</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:8px">Your Photo</div>
+      </div>
+    </div>
+  `;
+  placeholder.onclick = null;
+  document.getElementById('aiLabel').style.display = 'flex';
+  document.getElementById('canvasActions').style.display = 'flex';
+  showToast('Photo loaded ✓');
+}
+
+const filterClasses = ['f-none','f-glamour','f-vintage','f-neon','f-soft','f-bold','f-mono','f-rose'];
+const filterKeys = ['none','glamour','vintage','neon','soft','bold','mono','rose'];
+let filterIdx = 0;
+
+function cycleFilter() {
+  filterIdx = (filterIdx + 1) % filterKeys.length;
+  const area = document.getElementById('canvasArea');
+  filterClasses.forEach(c => area.classList.remove(c));
+  area.classList.add('f-' + filterKeys[filterIdx]);
+  // Update UI
+  document.querySelectorAll('.filter-item').forEach((el, i) => {
+    el.classList.toggle('active', i === filterIdx);
+  });
+  showToast(filterKeys[filterIdx].charAt(0).toUpperCase() + filterKeys[filterIdx].slice(1) + ' filter applied ✨');
+}
+
+function applyFilter(el, name) {
+  document.querySelectorAll('.filter-item').forEach(f => f.classList.remove('active'));
+  el.classList.add('active');
+  const area = document.getElementById('canvasArea');
+  filterClasses.forEach(c => area.classList.remove(c));
+  area.classList.add('f-' + name);
+  if (!photoLoaded) uploadPhoto();
+  showToast(name.charAt(0).toUpperCase() + name.slice(1) + ' filter ✓');
+}
+
+function updateEffect() {
+  if (!photoLoaded) uploadPhoto();
+  showToast('Adjustments applied ✓');
+}
+
+function toggleBeauty(el) {
+  el.classList.toggle('active');
+  const name = el.querySelector('.beauty-name').textContent;
+  showToast((el.classList.contains('active') ? name + ' ON ✓' : name + ' OFF'));
+  if (!photoLoaded) uploadPhoto();
+}
+
+function switchTab(el, tabId) {
+  document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tool-panel-section').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+}
+
+function runAIFeature(name) {
+  if (!photoLoaded) uploadPhoto();
+  showToast('AI ' + name + ' processing...');
+  setTimeout(() => showToast(name + ' complete ✨'), 2000);
+}
+
+function exportPhoto() {
+  if (!photoLoaded) { showToast('Upload a photo first!'); return; }
+  showToast('Exporting in 4K... ✦');
+  setTimeout(() => showToast('Saved to gallery ✓'), 2000);
+}
+
+function selectStyle(el) {
+  document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function setPrompt(text) {
+  document.getElementById('promptInput').value = text;
+}
+
+const loadingMsgs = [
+  'Painting your vision...',
+  'Applying glamour filters...',
+  'Rendering details...',
+  'Final touches...',
+];
+
+function startGenerate() {
+  const prompt = document.getElementById('promptInput').value.trim();
+  if (!prompt) { showToast('Write a prompt first ✦'); return; }
+  const loading = document.getElementById('aiLoading');
+  loading.classList.add('show');
+  let i = 0;
+  const iv = setInterval(() => {
+    document.getElementById('loaderStatus').textContent = loadingMsgs[i % loadingMsgs.length];
+    i++;
+    if (i >= loadingMsgs.length + 1) {
+      clearInterval(iv);
+      loading.classList.remove('show');
+      showToast('4 images generated! ✨');
+    }
+  }, 900);
+}
+
+let toastTimeout;
+function showToast(msg) {
+  const t = document.getElementById('aiToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Init
+document.getElementById('bottomNav').style.display = 'none';
+</script>
+</body>
+</html>
